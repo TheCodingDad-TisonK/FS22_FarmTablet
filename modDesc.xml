@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="80">
+    <title>
+        <en>Farm Tablet</en>
+        <de>Farm-Tablet</de>
+        <fr>Tablette de Ferme</fr>
+        <es>Tablet Agrícola</es>
+    </title>
+<description>
+    <en><![CDATA[
+The FS22 Farm Tablet is a central interface that helps you monitor and manage your farm more easily.
+
+Current features:
+• Open and close the tablet with a dedicated keybind (default: 'I')
+• Modular app system with built-in apps:
+  - Financial Dashboard: view your total income, expenses, net profit, active fields, and vehicle count
+  - App Store: see all installed apps and their status
+  - Settings: manage tablet options via the console
+  - Updates: track recent changes and mod versions
+  - Extra: placeholder for future apps
+• Shows simple notifications in-game
+• Multiplayer compatible
+
+The tablet is fully customizable via console commands and actively being developed. Future updates will include additional apps and UI improvements.
+    ]]></en>
+
+    <nl><![CDATA[
+De FS22 Farm Tablet is een centrale interface die je helpt je boerderij gemakkelijker te beheren en te monitoren.
+
+Huidige functies:
+• Open en sluit de tablet met een speciale toets (standaard: 'I')
+• Modulair appsysteem met ingebouwde apps:
+  - Financieel Dashboard: bekijk je totale inkomsten, uitgaven, nettowinst, actieve velden en voertuigen
+  - App Store: zie alle geïnstalleerde apps en hun status
+  - Instellingen: beheer tablet-opties via de console
+  - Updates: volg recente wijzigingen en mod-versies
+  - Extra: tijdelijke plaats voor toekomstige apps
+• Geeft eenvoudige meldingen in het spel weer
+• Multiplayer-compatibel
+
+De tablet is volledig aanpasbaar via console-commando's en wordt actief verder ontwikkeld. Toekomstige updates zullen extra apps en verbeteringen aan de interface bevatten.
+    ]]></nl>
+
+    <de><![CDATA[
+Das FS22 Farm Tablet ist eine zentrale Schnittstelle, die dir hilft, deinen Hof einfacher zu überwachen und zu verwalten.
+
+Aktuelle Funktionen:
+• Öffne und schließe das Tablet mit einer speziellen Taste (Standard: 'I')
+• Modulares App-System mit eingebauten Apps:
+  - Finanz-Dashboard: Zeigt Gesamteinnahmen, Ausgaben, Nettogewinn, aktive Felder und Fahrzeuganzahl
+  - App Store: Alle installierten Apps und deren Status anzeigen
+  - Einstellungen: Tablet-Optionen über die Konsole verwalten
+  - Updates: Verfolge kürzliche Änderungen und Mod-Versionen
+  - Extra: Platzhalter für zukünftige Apps
+• Zeigt einfache In-Game-Benachrichtigungen
+• Multiplayer-kompatibel
+
+Das Tablet ist vollständig über Konsolenbefehle anpassbar und wird aktiv weiterentwickelt. Zukünftige Updates werden zusätzliche Apps und UI-Verbesserungen enthalten.
+    ]]></de>
+
+    <fr><![CDATA[
+La tablette FS22 Farm est une interface centrale qui vous aide à surveiller et gérer votre ferme plus facilement.
+
+Fonctionnalités actuelles :
+• Ouvrez et fermez la tablette avec une touche dédiée (par défaut : 'I')
+• Système d'applications modulaire avec applications intégrées :
+  - Tableau de bord financier : affiche vos revenus totaux, dépenses, bénéfices nets, champs actifs et véhicules
+  - Boutique d'apps : voir toutes les applications installées et leur statut
+  - Paramètres : gérer les options de la tablette via la console
+  - Updates : suivre les modifications récentes et les versions du mod
+  - Extra : espace réservé pour les futures applications
+• Affiche des notifications simples dans le jeu
+• Compatible multijoueur
+
+La tablette est entièrement personnalisable via les commandes de la console et est en développement actif. Les mises à jour futures incluront des applications supplémentaires et des améliorations de l'interface.
+    ]]></fr>
+
+    <es><![CDATA[
+La tablet FS22 Farm es una interfaz central que te ayuda a monitorear y gestionar tu granja más fácilmente.
+
+Funciones actuales:
+• Abrir y cerrar la tablet con una tecla dedicada (por defecto: 'I')
+• Sistema de aplicaciones modular con apps integradas:
+  - Panel financiero: ver ingresos totales, gastos, beneficio neto, campos activos y vehículos
+  - Tienda de apps: ver todas las aplicaciones instaladas y su estado
+  - Ajustes: administrar opciones de la tablet a través de la consola
+  - Updates: seguir los cambios recientes y versiones del mod
+  - Extra: marcador de posición para futuras apps
+• Muestra notificaciones simples en el juego
+• Compatible con multijugador
+
+La tablet es totalmente personalizable mediante comandos de consola y se encuentra en desarrollo activo. Las actualizaciones futuras incluirán apps adicionales y mejoras de la interfaz.
+    ]]></es>
+</description>    
+    <author>TisonK</author>
+    
+    <version>1.0.5.8</version>
+    <multiplayer supported="true"/>
+    
+    <iconFilename>icon_FS22_FarmTablet.dds</iconFilename>
+    
+    <l10n>
+        <text name="tablet_app_dashboard">
+            <en>Dashboard</en>
+            <de>Dashboard</de>
+            <fr>Tableau de bord</fr>
+            <es>Panel de control</es>
+        </text>
+        
+        <text name="tablet_app_store">
+            <en>App Store</en>
+            <de>App Store</de>
+            <fr>Boutique d'apps</fr>
+            <es>Tienda de apps</es>
+        </text>
+
+        <text name="tablet_app_updates">
+            <en>Updates</en>
+            <de>Updates</de>
+            <fr>Mises à jour</fr>
+            <es>Actualizaciones</es>
+        </text>
+        
+        <text name="tablet_app_settings">
+            <en>Settings</en>
+            <de>Einstellungen</de>
+            <fr>Paramètres</fr>
+            <es>Ajustes</es>
+        </text>
+
+        <text name="tablet_app_weather">
+            <en>Weather</en>
+        </text>
+
+        <text name="tablet_app_workshop">
+            <en>Workshop</en>
+            <de>Werkstatt</de>
+            <fr>Atelier</fr>
+            <es>Taller</es>
+        </text>
+        
+        <text name="tablet_app_income_mod">
+            <en>Income Mod</en>
+            <de>Einkommens-Mod</de>
+            <fr>Mod Revenus</fr>
+            <es>Mod Ingresos</es>
+        </text>
+        
+        <text name="tablet_app_digging">
+            <en>Digging</en>
+            <de>Graben</de>
+            <fr>Creuser</fr>
+            <es>Cavando</es>
+        </text>
+
+        <text name="tablet_app_tax_mod">
+            <en>Tax Mod</en>
+            <de>Steuer-Mod</de>
+            <fr>Mod Taxes</fr>
+            <es>Mod Impuestos</es>
+        </text>
+
+        <text name="tablet_workshop">
+            <en>Workshop</en>
+            <de>Werkstatt</de>
+            <fr>Atelier</fr>
+            <es>Taller</es>
+        </text>
+        
+        <text name="tablet_no_vehicle_nearby">
+            <en>No vehicle nearby</en>
+            <de>Kein Fahrzeug in der Nähe</de>
+            <fr>Aucun véhicule à proximité</fr>
+            <es>No hay vehículos cerca</es>
+        </text>
+        
+        <text name="tablet_welcome_title">
+            <en>Farm Tablet</en>
+            <de>Farm-Tablet</de>
+            <fr>Tablette de Ferme</fr>
+            <es>Tablet Agrícola</es>
+        </text>
+        
+        <text name="tablet_welcome_message">
+            <en>Loaded successfully! Press "T" to open the tablet.</en>
+            <de>Erfolgreich geladen! Drücken Sie "T", um das Tablet zu öffnen.</de>
+            <fr>Chargé avec succès! Appuyez sur "T" pour ouvrir la tablette.</fr>
+            <es>¡Cargado con éxito! Presiona "T" para abrir la tablet.</es>
+        </text>
+        
+        <text name="tablet_opened">
+            <en>Tablet</en>
+            <de>Tablet</de>
+            <fr>Tablette</fr>
+            <es>Tablet</es>
+        </text>
+        
+        <text name="tablet_app_installed">
+            <en>App Installed</en>
+            <de>App installiert</de>
+            <fr>Application installée</fr>
+            <es>Aplicación instalada</es>
+        </text>
+        
+        <text name="tablet_app_installed_message">
+            <en>%s has been added to your tablet</en>
+            <de>%s wurde zu Ihrem Tablet hinzugefügt</de>
+            <fr>%s a été ajouté à votre tablette</fr>
+            <es>%s se ha añadido a tu tablet</es>
+        </text>
+        
+        <text name="tablet_category">
+            <en>Farm Tablet</en>
+            <de>Farm-Tablet</de>
+            <fr>Tablette de Ferme</fr>
+            <es>Tablet Agrícola</es>
+        </text>
+        
+        <text name="tablet_enabled">
+            <en>Enable Farm Tablet</en>
+            <nl>Farm Tablet inschakelen</nl>
+            <de>Farm-Tablet aktivieren</de>
+            <fr>Activer la tablette de ferme</fr>
+            <es>Activar tablet agrícola</es>
+        </text>
+        
+        <text name="tablet_enabled_tooltip">
+            <en>Enable or disable the farm tablet system</en>
+            <nl>Schakel het farm tablet systeem in of uit</nl>
+            <de>Farm-Tablet-System aktivieren oder deaktivieren</de>
+            <fr>Activer ou désactiver le système de tablette de ferme</fr>
+            <es>Activar o desactivar el sistema de tablet agrícola</es>
+        </text>
+        
+        <text name="tablet_keybind">
+            <en>Tablet Keybind</en>
+            <nl>Tablet toets</nl>
+            <de>Tablet-Taste</de>
+            <fr>Touche de la tablette</fr>
+            <es>Tecla de la tablet</es>
+        </text>
+        
+        <text name="tablet_keybind_tooltip">
+            <en>Key to open/close the farm tablet</en>
+            <nl>Toets om de farm tablet te openen/sluiten</nl>
+            <de>Taste zum Öffnen/Schließen des Farm-Tablets</de>
+            <fr>Touche pour ouvrir/fermer la tablette de ferme</fr>
+            <es>Tecla para abrir/cerrar la tablet agrícola</es>
+        </text>
+        
+        <text name="tablet_notifications">
+            <en>Show Notifications</en>
+            <nl>Toon meldingen</nl>
+            <de>Benachrichtigungen anzeigen</de>
+            <fr>Afficher les notifications</fr>
+            <es>Mostrar notificaciones</es>
+        </text>
+        
+        <text name="tablet_notifications_tooltip">
+            <en>Show notifications for tablet events</en>
+            <nl>Toon meldingen voor tablet gebeurtenissen</nl>
+            <de>Benachrichtigungen für Tablet-Ereignisse anzeigen</de>
+            <fr>Afficher les notifications pour les événements de la tablette</fr>
+            <es>Mostrar notificaciones para eventos de la tablet</es>
+        </text>
+        
+        <text name="tablet_startup_app">
+            <en>Startup App</en>
+            <nl>Start app</nl>
+            <de>Start-App</de>
+            <fr>Application de démarrage</fr>
+            <es>Aplicación de inicio</es>
+        </text>
+        
+        <text name="tablet_startup_app_tooltip">
+            <en>Default app when opening the tablet</en>
+            <nl>Standaard app bij openen van het tablet</nl>
+            <de>Standard-App beim Öffnen des Tablets</de>
+            <fr>Application par défaut lors de l'ouverture de la tablette</fr>
+            <es>Aplicación predeterminada al abrir la tablet</es>
+        </text>
+        
+        <text name="tablet_sound_effects">
+            <en>Sound Effects</en>
+            <nl>Geluidseffecten</nl>
+            <de>Soundeffekte</de>
+            <fr>Effets sonores</fr>
+            <es>Efectos de sonido</es>
+        </text>
+        
+        <text name="tablet_sound_effects_tooltip">
+            <en>Play sound effects for tablet interactions</en>
+            <nl>Speel geluidseffecten voor tablet interacties</nl>
+            <de>Soundeffekte für Tablet-Interaktionen abspielen</de>
+            <fr>Jouer des effets sonores pour les interactions avec la tablette</fr>
+            <es>Reproducir efectos de sonido para interacciones con la tablet</es>
+        </text>
+        
+        <text name="tablet_debug">
+            <en>Debug Mode</en>
+            <nl>Debug-modus</nl>
+            <de>Debug-Modus</de>
+            <fr>Mode debug</fr>
+            <es>Modo depuración</es>
+        </text>
+        
+        <text name="tablet_debug_tooltip">
+            <en>Enable debug logging in console</en>
+            <nl>Schakel debug-logging in de console in</nl>
+            <de>Debug-Protokollierung in der Konsole aktivieren</de>
+            <fr>Activer la journalisation de débogage dans la console</fr>
+            <es>Activar registro de depuración en la consola</es>
+        </text>
+        
+        <text name="tablet_app_dashboard_list">
+            <en>Dashboard</en>
+            <de>Dashboard</de>
+            <fr>Tableau de bord</fr>
+            <es>Panel de control</es>
+        </text>
+        
+        <text name="tablet_app_store_list">
+            <en>App Store</en>
+            <de>App Store</de>
+            <fr>Boutique d'apps</fr>
+            <es>Tienda de apps</es>
+        </text>
+        
+        <text name="tablet_console_help">
+            <en><![CDATA[
+====== Farm Tablet Commands ======
+ - tablet status -> Show tablet status and installed apps
+ - tablet open -> Open the tablet
+ - tablet close -> Close the tablet
+ - tablet toggle -> Toggle tablet open/close
+ - tablet app [app_id] -> Switch to specific app
+ - tablet apps -> List all available apps
+ - tablet enable [app_id] -> Enable an app
+ - tablet disable [app_id] -> Disable an app
+ - tablet keybind [key] -> Set tablet keybind (e.g., I)
+ - tablet debug -> Toggle debug mode
+ - tablet reload -> Reload settings from file
+ - tablet register [app_id] -> Register test app
+ - tablet debugmods -> Debug mod detection
+ - tablet debugfinance -> Debug financial data
+==================================
+            ]]></en>
+            <de><![CDATA[
+====== Farm-Tablet Befehle ======
+ - tablet status -> Tablet-Status und installierte Apps anzeigen
+ - tablet open -> Tablet öffnen
+ - tablet close -> Tablet schließen
+ - tablet toggle -> Tablet umschalten (öffnen/schließen)
+ - tablet app [app_id] -> Zu bestimmter App wechseln
+ - tablet apps -> Alle verfügbaren Apps auflisten
+ - tablet enable [app_id] -> App aktivieren
+ - tablet disable [app_id] -> App deaktivieren
+ - tablet keybind [taste] -> Tablet-Taste setzen (z.B. I)
+ - tablet debug -> Debug-Modus umschalten
+ - tablet reload -> Einstellungen aus Datei neu laden
+ - tablet register [app_id] -> Test-App registrieren
+ - tablet debugmods -> Mod-Erkennung debuggen
+ - tablet debugfinance -> Finanzdaten debuggen
+==================================
+            ]]></de>
+            <fr><![CDATA[
+====== Commandes Farm Tablet ======
+ - tablet status -> Afficher l'état et les applications installées
+ - tablet open -> Ouvrir la tablette
+ - tablet close -> Fermer la tablette
+ - tablet toggle -> Basculer l'ouverture/fermeture
+ - tablet app [app_id] -> Passer à une application spécifique
+ - tablet apps -> Lister toutes les applications disponibles
+ - tablet enable [app_id] -> Activer une application
+ - tablet disable [app_id] -> Désactiver une application
+ - tablet keybind [key] -> Définir la touche (ex: I)
+ - tablet debug -> Basculer le mode debug
+ - tablet reload -> Recharger les paramètres
+ - tablet register [app_id] -> Enregistrer une application test
+ - tablet debugmods -> Déboguer la détection des mods
+ - tablet debugfinance -> Déboguer les données financières
+==================================
+            ]]></fr>
+            <es><![CDATA[
+====== Comandos Farm Tablet ======
+ - tablet status -> Mostrar estado y aplicaciones instaladas
+ - tablet open -> Abrir la tablet
+ - tablet close -> Cerrar la tablet
+ - tablet toggle -> Alternar apertura/cierre
+ - tablet app [app_id] -> Cambiar a aplicación específica
+ - tablet apps -> Listar todas las aplicaciones disponibles
+ - tablet enable [app_id] -> Habilitar una aplicación
+ - tablet disable [app_id] -> Deshabilitar una aplicación
+ - tablet keybind [key] -> Establecer tecla (ej: I)
+ - tablet debug -> Alternar modo depuración
+ - tablet reload -> Recargar configuración
+ - tablet register [app_id] -> Registrar aplicación de prueba
+ - tablet debugmods -> Depurar detección de mods
+ - tablet debugfinance -> Depurar datos financieros
+==================================
+            ]]></es>
+        </text>
+        
+        <text name="option_ON">
+            <en>ON</en>
+            <nl>AAN</nl>
+            <de>EIN</de>
+            <fr>ACTIVÉ</fr>
+            <es>ACTIVADO</es>
+        </text>
+        
+        <text name="option_OFF">
+            <en>OFF</en>
+            <nl>UIT</nl>
+            <de>AUS</de>
+            <fr>DÉSACTIVÉ</fr>
+            <es>DESACTIVADO</es>
+        </text>
+        
+        <text name="Farm Dashboard">
+            <en>Farm Dashboard</en>
+            <de>Farm-Dashboard</de>
+            <fr>Tableau de bord de la ferme</fr>
+            <es>Panel de control de la granja</es>
+        </text>
+        
+        <text name="Current Balance">
+            <en>Current Balance</en>
+            <de>Aktuelles Guthaben</de>
+            <fr>Solde actuel</fr>
+            <es>Saldo actual</es>
+        </text>
+        
+        <text name="Total Income">
+            <en>Total Income</en>
+            <de>Gesamteinkommen</de>
+            <fr>Revenu total</fr>
+            <es>Ingresos totales</es>
+        </text>
+        
+        <text name="Total Expenses">
+            <en>Total Expenses</en>
+            <de>Gesamtausgaben</de>
+            <fr>Dépenses totales</fr>
+            <es>Gastos totales</es>
+        </text>
+        
+        <text name="Loaned Money">
+            <en>Loaned Money</en>
+            <de>Geliehenes Geld</de>
+            <fr>Argent emprunté</fr>
+            <es>Dinero prestado</es>
+        </text>
+        
+        <text name="Active Fields">
+            <en>Active Fields</en>
+            <de>Aktive Felder</de>
+            <fr>Champs actifs</fr>
+            <es>Campos activos</es>
+        </text>
+        
+        <text name="Vehicles">
+            <en>Vehicles</en>
+            <de>Fahrzeuge</de>
+            <fr>Véhicules</fr>
+            <es>Vehículos</es>
+        </text>
+
+        <text name="Digging">
+            <en>Digging</en>
+            <de>Graben</de>
+            <fr>Creuser</fr>
+            <es>Cavando</es>
+        </text>
+    </l10n>
+    
+    <extraSourceFiles>
+        <sourceFile filename="main.lua"/>
+        <sourceFile filename="inputBinding.lua"/>
+    </extraSourceFiles>
+</modDesc>
