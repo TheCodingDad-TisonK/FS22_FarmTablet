@@ -1,5 +1,5 @@
 -- =========================================================
--- FS22 Farm Tablet Mod (version 1.0.5.8)
+-- FS22 Farm Tablet Mod (version 1.0.5.9)
 -- =========================================================
 -- Central tablet interface for farm management mods
 -- =========================================================
@@ -20,7 +20,7 @@ FarmTablet = {}
 FarmTablet.modName = "FS22_FarmTablet"
 FarmTablet.settings = {}
 FarmTablet.hasRegisteredSettings = false
-FarmTablet.version = "1.0.5.8"
+FarmTablet.version = "1.0.5.9"
 
 -- =====================
 -- DEFAULT CONFIGURATION
@@ -91,6 +91,14 @@ FarmTablet.registeredApps = {
         id = "digging",
         name = "tablet_app_digging",
         icon = "digging_app",
+        developer = "FarmTablet",
+        version = "Installed by DEFAULT",
+        enabled = true
+    },
+    {
+        id = "bucket_tracker",
+        name = "tablet_app_bucket_tracker",
+        icon = "bucket_icon",
         developer = "FarmTablet",
         version = "Installed by DEFAULT",
         enabled = true
@@ -442,6 +450,8 @@ function FarmTablet:createAppContentArea()
         self:loadWorkshopApp()
     elseif self.currentApp == "digging" then
         self:loadDiggingApp()
+    elseif self.currentApp == "bucket_tracker" then
+        self:loadBucketTrackerApp() 
     elseif self.currentApp == "income_mod" then
         self:loadIncomeApp()
     elseif self.currentApp == "tax_mod" then
@@ -660,6 +670,203 @@ function FarmTablet:updateDashboardLive(dt)
     end
 end
 
+function FarmTablet:isDiggingCapable(vehicle)
+    -- Check for standard FS22 terrain deformation
+    if vehicle ~= nil and vehicle.getIsTerrainDeformationActive ~= nil then
+        return true
+    end
+    
+    -- Check for TerraFarm compatibility
+    if vehicle ~= nil then
+        -- Look for TerraFarm specific properties
+        local typeName = vehicle.typeName or ""
+        local hasDiggingInName = typeName:lower():find("digger") or 
+                                typeName:lower():find("excavator") or
+                                typeName:lower():find("backhoe") or
+                                typeName:lower():find("loader") or
+                                typeName:lower():find("terra")
+        
+        -- Check for attached tools that might be digging tools
+        if vehicle.getAttachedImplements then
+            local attached = vehicle:getAttachedImplements()
+            for _, impl in ipairs(attached) do
+                local spec = impl.object.spec_digging or impl.object.spec_terraFarm
+                if spec ~= nil then
+                    return true
+                end
+            end
+        end
+        
+        return hasDiggingInName
+    end
+    
+    return false
+end
+
+function FarmTablet:isVehicleDigging(vehicle)
+    -- Standard FS22 terrain deformation
+    if vehicle.getIsTerrainDeformationActive ~= nil then
+        return vehicle:getIsTerrainDeformationActive()
+    end
+    
+    -- TerraFarm specific detection
+    if vehicle.spec_terraFarm ~= nil then
+        local terraSpec = vehicle.spec_terraFarm
+        if terraSpec.isActive ~= nil then
+            return terraSpec.isActive
+        end
+        
+        -- Check fill type changes (digging usually creates terrain)
+        if terraSpec.fillLevel ~= nil and terraSpec.fillLevel > 0 then
+            return true
+        end
+    end
+    
+    -- Check digging attachments
+    if vehicle.getAttachedImplements then
+        local attached = vehicle:getAttachedImplements()
+        for _, impl in ipairs(attached) do
+            local implObject = impl.object
+            
+            -- Check if implement has digging functionality
+            if implObject.spec_digging then
+                local diggingSpec = implObject.spec_digging
+                if diggingSpec.isActive ~= nil then
+                    return diggingSpec.isActive
+                end
+            end
+            
+            -- Check for TerraFarm attachment
+            if implObject.spec_terraFarm then
+                local terraSpec = implObject.spec_terraFarm
+                if terraSpec.isActive ~= nil then
+                    return terraSpec.isActive
+                end
+            end
+        end
+    end
+    
+    -- Check vehicle animation/working state
+    if vehicle.getIsWorkAreaActive ~= nil then
+        return vehicle:getIsWorkAreaActive()
+    end
+    
+    return false
+end
+
+function FarmTablet:getDiggingInfo()
+    local info = {
+        hasTerrainSystem = false,
+        terrainSystem = "Unknown",
+        supportsTerraFarm = false,
+        terraFarmActive = false,
+        
+        diggingTools = 0,
+        activeDiggers = 0,
+        
+        supportsTerrainDeformation = false,
+        terrainDeformationActive = false,
+        
+        currentPosition = nil,
+        currentTerrainHeight = nil,
+        terrainDelta = nil,
+        
+        availableTools = {},
+        terraFarmVehicles = {}
+    }
+    
+    -- Check for TerraFarm mod
+    if g_terraFarm ~= nil then
+        info.supportsTerraFarm = true
+        info.terraFarmActive = true
+        info.terrainSystem = "TerraFarm + FS22 Terrain"
+        
+        -- Get TerraFarm specific info
+        if g_terraFarm.getVersion then
+            info.terraFarmVersion = g_terraFarm:getVersion()
+        end
+        
+        -- Check for active TerraFarm vehicles
+        if g_currentMission and g_currentMission.vehicles then
+            for _, vehicle in pairs(g_currentMission.vehicles) do
+                if vehicle.spec_terraFarm ~= nil then
+                    table.insert(info.terraFarmVehicles, {
+                        name = vehicle.getName and vehicle:getName() or "Unknown",
+                        isActive = self:isVehicleDigging(vehicle)
+                    })
+                end
+            end
+        end
+    elseif g_currentMission and g_currentMission.terrainRootNode then
+        info.hasTerrainSystem = true
+        info.terrainSystem = "FS22 Terrain"
+        
+        if g_currentMission.terrainDeformationSystem then
+            info.supportsTerrainDeformation = true
+            info.terrainDeformationActive = true
+        end
+    end
+    
+    -- Vehicles detection (REAL digging detection)
+    if g_currentMission and g_currentMission.vehicles then
+        for _, vehicle in pairs(g_currentMission.vehicles) do
+            if self:isDiggingCapable(vehicle) then
+                info.diggingTools = info.diggingTools + 1
+                
+                local active = self:isVehicleDigging(vehicle)
+                if active then
+                    info.activeDiggers = info.activeDiggers + 1
+                end
+                
+                local vehicleType = "Unknown"
+                if vehicle.spec_terraFarm then
+                    vehicleType = "TerraFarm"
+                elseif vehicle.spec_digging then
+                    vehicleType = "Digging"
+                elseif vehicle.typeName then
+                    vehicleType = vehicle.typeName
+                end
+                
+                table.insert(info.availableTools, {
+                    name = vehicle.getName and vehicle:getName() or "Unknown",
+                    type = vehicleType,
+                    status = active and "ACTIVE" or "Idle"
+                })
+            end
+        end
+    end
+    
+    -- Player position & terrain delta
+    if g_currentMission and g_currentMission.player then
+        local player = g_currentMission.player
+        if player.rootNode and (g_currentMission.terrainRootNode or info.supportsTerraFarm) then
+            local x, _, z = getWorldTranslation(player.rootNode)
+            info.currentPosition = { x = x, z = z }
+            
+            -- Get terrain height from appropriate system
+            if g_currentMission.terrainRootNode then
+                local currentH = getTerrainHeightAtWorldPos(
+                    g_currentMission.terrainRootNode,
+                    x, 0, z
+                )
+                info.currentTerrainHeight = currentH
+                
+                -- Cache original terrain height (cut/fill detection)
+                self._terrainCache = self._terrainCache or {}
+                local key = string.format("%.1f_%.1f", x, z)
+                
+                if self._terrainCache[key] == nil then
+                    self._terrainCache[key] = currentH
+                end
+                
+                info.terrainDelta = currentH - self._terrainCache[key]
+            end
+        end
+    end
+    
+    return info
+end
+
 function FarmTablet:loadDiggingApp()
     local content = self.ui.appContentArea
     if not content then
@@ -684,16 +891,41 @@ function FarmTablet:loadDiggingApp()
     local diggingInfo = self:getDiggingInfo()
     local yPos = titleY - 0.035
 
+    -- TerraFarm Status
+    if diggingInfo.supportsTerraFarm then
+        table.insert(self.ui.appTexts, {
+            text = "✓ TerraFarm Mod Detected",
+            x = content.x + padX,
+            y = yPos,
+            size = 0.016,
+            align = RenderText.ALIGN_LEFT,
+            color = {0.4, 0.9, 0.4, 1}
+        })
+        
+        if diggingInfo.terraFarmVersion then
+            table.insert(self.ui.appTexts, {
+                text = "Version: " .. diggingInfo.terraFarmVersion,
+                x = content.x + content.width - padX,
+                y = yPos,
+                size = 0.014,
+                align = RenderText.ALIGN_RIGHT,
+                color = {0.7, 0.7, 0.7, 1}
+            })
+        end
+        
+        yPos = yPos - 0.024
+    end
+
     if diggingInfo.hasTerrainSystem then
         local labelColor = {0.4, 0.8, 0.4, 1}
         local valueColor = {0.8, 0.8, 0.8, 1}
-
+        
         local items = {
             { "Terrain System", diggingInfo.terrainSystem },
             { "Terrain Deformation", diggingInfo.supportsTerrainDeformation and "Enabled" or "Not Supported" },
             { "Active Diggers", string.format("%d / %d", diggingInfo.activeDiggers, diggingInfo.diggingTools) }
         }
-
+        
         for _, item in ipairs(items) do
             table.insert(self.ui.appTexts, {
                 text = item[1] .. ":",
@@ -761,11 +993,48 @@ function FarmTablet:loadDiggingApp()
             end
         end
 
-        -- Digging vehicles list
+        -- TerraFarm specific vehicles
+        if diggingInfo.supportsTerraFarm and #diggingInfo.terraFarmVehicles > 0 then
+            yPos = yPos - 0.030
+            table.insert(self.ui.appTexts, {
+                text = "TerraFarm Vehicles:",
+                x = content.x + padX,
+                y = yPos,
+                size = 0.016,
+                align = RenderText.ALIGN_LEFT,
+                color = {0.3, 0.6, 0.8, 1}
+            })
+
+            yPos = yPos - 0.022
+            for i = 1, math.min(3, #diggingInfo.terraFarmVehicles) do
+                local vehicle = diggingInfo.terraFarmVehicles[i]
+                table.insert(self.ui.appTexts, {
+                    text = "• " .. vehicle.name,
+                    x = content.x + padX + 0.01,
+                    y = yPos,
+                    size = 0.013,
+                    align = RenderText.ALIGN_LEFT,
+                    color = {0.8, 0.8, 0.8, 1}
+                })
+
+                table.insert(self.ui.appTexts, {
+                    text = vehicle.isActive and "ACTIVE" or "Idle",
+                    x = content.x + content.width - padX,
+                    y = yPos,
+                    size = 0.013,
+                    align = RenderText.ALIGN_RIGHT,
+                    color = vehicle.isActive and {0.4, 0.9, 0.4, 1} or {0.7, 0.7, 0.7, 1}
+                })
+
+                yPos = yPos - 0.018
+            end
+        end
+
+        -- All digging vehicles list
         if diggingInfo.availableTools and #diggingInfo.availableTools > 0 then
             yPos = yPos - 0.030
             table.insert(self.ui.appTexts, {
-                text = "Digging Vehicles:",
+                text = "All Digging Vehicles:",
                 x = content.x + padX,
                 y = yPos,
                 size = 0.016,
@@ -785,96 +1054,35 @@ function FarmTablet:loadDiggingApp()
                     color = {0.8, 0.8, 0.8, 1}
                 })
 
+                local statusText = tool.status
+                if tool.type ~= "Unknown" then
+                    statusText = tool.type .. " - " .. statusText
+                end
+                
                 table.insert(self.ui.appTexts, {
-                    text = tool.type,
+                    text = statusText,
                     x = content.x + content.width - padX,
                     y = yPos,
                     size = 0.013,
                     align = RenderText.ALIGN_RIGHT,
-                    color = tool.type == "ACTIVE" and {0.4, 0.9, 0.4, 1} or {0.7, 0.7, 0.7, 1}
+                    color = tool.status == "ACTIVE" and {0.4, 0.9, 0.4, 1} or {0.7, 0.7, 0.7, 1}
                 })
 
                 yPos = yPos - 0.018
             end
         end
+    else
+        table.insert(self.ui.appTexts, {
+            text = "No terrain system detected",
+            x = content.x + padX,
+            y = yPos,
+            size = 0.016,
+            align = RenderText.ALIGN_LEFT,
+            color = {1, 0.5, 0, 1}
+        })
     end
 
     self:log("Digging app loaded successfully")
-end
-
-function FarmTablet:getDiggingInfo()
-    local info = {
-        hasTerrainSystem = false,
-        terrainSystem = "Unknown",
-        resolution = { x = 0, y = 0 },
-
-        diggingTools = 0,
-        activeDiggers = 0,
-
-        supportsTerrainDeformation = false,
-
-        currentPosition = nil,
-        currentTerrainHeight = nil,
-        terrainDelta = nil,
-
-        availableTools = {}
-    }
-
-    -- Terrain system
-    if g_currentMission and g_currentMission.terrainRootNode then
-        info.hasTerrainSystem = true
-        info.terrainSystem = "FS22 Terrain"
-
-        if g_currentMission.terrainDeformationSystem then
-            info.supportsTerrainDeformation = true
-        end
-    end
-
-    -- Vehicles (REAL digging detection)
-    if g_currentMission and g_currentMission.vehicles then
-        for _, vehicle in pairs(g_currentMission.vehicles) do
-            if self:isDiggingCapable(vehicle) then
-                info.diggingTools = info.diggingTools + 1
-
-                local active = self:isVehicleDigging(vehicle)
-                if active then
-                    info.activeDiggers = info.activeDiggers + 1
-                end
-
-                table.insert(info.availableTools, {
-                    name = vehicle.getName and vehicle:getName() or "Unknown",
-                    type = active and "ACTIVE" or "Idle"
-                })
-            end
-        end
-    end
-
-    -- Player position & terrain delta
-    if g_currentMission and g_currentMission.player then
-        local player = g_currentMission.player
-        if player.rootNode and g_currentMission.terrainRootNode then
-            local x, _, z = getWorldTranslation(player.rootNode)
-            info.currentPosition = { x = x, z = z }
-
-            local currentH = getTerrainHeightAtWorldPos(
-                g_currentMission.terrainRootNode,
-                x, 0, z
-            )
-            info.currentTerrainHeight = currentH
-
-            -- Cache original terrain height (cut/fill detection)
-            self._terrainCache = self._terrainCache or {}
-            local key = string.format("%.1f_%.1f", x, z)
-
-            if self._terrainCache[key] == nil then
-                self._terrainCache[key] = currentH
-            end
-
-            info.terrainDelta = currentH - self._terrainCache[key]
-        end
-    end
-
-    return info
 end
 
 -- Add this function to update digging info in real-time
@@ -904,15 +1112,6 @@ function FarmTablet:updateDiggingLive(dt)
     self:createAppContentArea()
 end
 
-function FarmTablet:isDiggingCapable(vehicle)
-    return vehicle ~= nil
-        and vehicle.getIsTerrainDeformationActive ~= nil
-end
-
-function FarmTablet:isVehicleDigging(vehicle)
-    return vehicle.getIsTerrainDeformationActive ~= nil
-        and vehicle:getIsTerrainDeformationActive()
-end
 
 function FarmTablet:loadWeatherApp()
     local content = self.ui.appContentArea
@@ -1626,14 +1825,13 @@ function FarmTablet:loadUpdatesApp()
     local maxVisibleUpdates = math.floor((itemsStartY - (content.y + padY)) / lineHeight)
     
     local updates = {
+        "Version 1.0.5.9 == [added Bucket Load Tracker app and fixed bugs]",
         "Version 1.0.5.8 == [reworked Digging app with real terrain deformation data]",
         "Version 1.0.5.7 == [added \"Digging\" app]",
         "Version 1.0.5.6 == [changed 2 apps and fixed debug spam in console]",
         "Version 1.0.5.5 == [added weather app and fixed workshop issues]",
         "Version 1.0.5.4 == [added 3 new apps and fixed minor bugs]",
         "Version 1.0.5.3 == [UI improvements and bug fixes]",
-        "Version 1.0.5.2 == [added watermark to tablet background]",
-        "Version 1.0.5.1 == [fixed \"Net Income\" issue and added keybind to toggle tablet]",
         "END OF LIST >> To see lower version updates, please look to changelog on KingMods",
     }
     
@@ -1741,6 +1939,557 @@ function FarmTablet:loadDefaultApp()
         align = RenderText.ALIGN_LEFT,
         color = self.UI_CONSTANTS.TEXT_COLOR
     })
+end
+
+function FarmTablet:loadBucketTrackerApp()
+    local content = self.ui.appContentArea
+    if not content then
+        self:log("No content area in bucket tracker app")
+        return
+    end
+
+    local padX = select(1, getNormalizedScreenValues(15, 0))
+    local padY = select(2, getNormalizedScreenValues(0, 15))
+    local titleY = content.y + content.height - padY - 0.03
+
+    -- Title
+    table.insert(self.ui.appTexts, {
+        text = "Bucket Load Tracker",
+        x = content.x + padX,
+        y = titleY,
+        size = 0.022,
+        align = RenderText.ALIGN_LEFT,
+        color = self.UI_CONSTANTS.TEXT_COLOR
+    })
+
+    local tracker = self.bucketTracker
+    local vehicle = self:getCurrentBucketVehicle()
+    local yPos = titleY - 0.035
+    
+    -- Current Vehicle Status
+    if vehicle then
+        local vehicleName = vehicle.getName and vehicle:getName() or "Unknown"
+        table.insert(self.ui.appTexts, {
+            text = "Vehicle: " .. vehicleName,
+            x = content.x + padX,
+            y = yPos,
+            size = 0.016,
+            align = RenderText.ALIGN_LEFT,
+            color = {0.4, 0.8, 0.4, 1}
+        })
+        
+        -- Current load info
+        local fillInfo = self:getBucketFillInfo(vehicle)
+        yPos = yPos - 0.024
+        
+        if fillInfo.totalFillLevel > 0 then
+            table.insert(self.ui.appTexts, {
+                text = "Current Load:",
+                x = content.x + padX,
+                y = yPos,
+                size = 0.015,
+                align = RenderText.ALIGN_LEFT,
+                color = self.UI_CONSTANTS.TEXT_COLOR
+            })
+            
+            table.insert(self.ui.appTexts, {
+                text = fillInfo.fillTypeName,
+                x = content.x + content.width - padX,
+                y = yPos,
+                size = 0.015,
+                align = RenderText.ALIGN_RIGHT,
+                color = {0.8, 0.8, 0.8, 1}
+            })
+            
+            yPos = yPos - 0.020
+            table.insert(self.ui.appTexts, {
+                text = string.format("Volume: %d / %d L", 
+                    math.floor(fillInfo.totalFillLevel), 
+                    math.floor(fillInfo.totalCapacity)),
+                x = content.x + padX,
+                y = yPos,
+                size = 0.014,
+                align = RenderText.ALIGN_LEFT,
+                color = self.UI_CONSTANTS.TEXT_COLOR
+            })
+            
+            yPos = yPos - 0.020
+            table.insert(self.ui.appTexts, {
+                text = string.format("Fill: %.0f%%", fillInfo.fillPercentage),
+                x = content.x + padX,
+                y = yPos,
+                size = 0.014,
+                align = RenderText.ALIGN_LEFT,
+                color = fillInfo.fillPercentage > 80 and {0, 1, 0, 1} or 
+                       fillInfo.fillPercentage > 50 and {1, 1, 0, 1} or {1, 0.5, 0, 1}
+            })
+            
+            yPos = yPos - 0.020
+            local weight = self:estimateBucketWeight(fillInfo)
+            table.insert(self.ui.appTexts, {
+                text = string.format("Est. Weight: %d kg", weight),
+                x = content.x + padX,
+                y = yPos,
+                size = 0.014,
+                align = RenderText.ALIGN_LEFT,
+                color = {0.6, 0.8, 1, 1}
+            })
+            
+            yPos = yPos - 0.010
+        else
+            table.insert(self.ui.appTexts, {
+                text = "Bucket: EMPTY",
+                x = content.x + padX,
+                y = yPos,
+                size = 0.015,
+                align = RenderText.ALIGN_LEFT,
+                color = {1, 0.5, 0, 1}
+            })
+            yPos = yPos - 0.024
+        end
+    else
+        table.insert(self.ui.appTexts, {
+            text = "No bucket vehicle detected",
+            x = content.x + padX,
+            y = yPos,
+            size = 0.016,
+            align = RenderText.ALIGN_LEFT,
+            color = {1, 0.5, 0, 1}
+        })
+        table.insert(self.ui.appTexts, {
+            text = "Drive a loader or excavator",
+            x = content.x + padX,
+            y = yPos - 0.024,
+            size = 0.014,
+            align = RenderText.ALIGN_LEFT,
+            color = {0.8, 0.8, 0.8, 1}
+        })
+        yPos = yPos - 0.048
+    end
+    
+    -- Session Statistics
+    yPos = yPos - 0.020
+    table.insert(self.ui.appTexts, {
+        text = "Session Statistics:",
+        x = content.x + padX,
+        y = yPos,
+        size = 0.016,
+        align = RenderText.ALIGN_LEFT,
+        color = {0.6, 0.9, 0.6, 1}
+    })
+    
+    yPos = yPos - 0.024
+    table.insert(self.ui.appTexts, {
+        text = "Total Loads: " .. tracker.totalLoads,
+        x = content.x + padX,
+        y = yPos,
+        size = 0.015,
+        align = RenderText.ALIGN_LEFT,
+        color = self.UI_CONSTANTS.TEXT_COLOR
+    })
+    
+    yPos = yPos - 0.020
+    table.insert(self.ui.appTexts, {
+        text = "Total Weight: " .. string.format("%d kg", tracker.totalWeight),
+        x = content.x + padX,
+        y = yPos,
+        size = 0.015,
+        align = RenderText.ALIGN_LEFT,
+        color = self.UI_CONSTANTS.TEXT_COLOR
+    })
+    
+    if tracker.startTime > 0 then
+        local currentTime = g_currentMission.time or 0
+        local duration = currentTime - tracker.startTime
+        
+        yPos = yPos - 0.020
+        table.insert(self.ui.appTexts, {
+            text = "Session Time: " .. self:formatTime(duration / 1000),
+            x = content.x + padX,
+            y = yPos,
+            size = 0.015,
+            align = RenderText.ALIGN_LEFT,
+            color = self.UI_CONSTANTS.TEXT_COLOR
+        })
+        
+        if tracker.totalLoads > 0 then
+            local avgWeight = math.floor(tracker.totalWeight / tracker.totalLoads)
+            yPos = yPos - 0.020
+            table.insert(self.ui.appTexts, {
+                text = "Avg. Load: " .. string.format("%d kg", avgWeight),
+                x = content.x + padX,
+                y = yPos,
+                size = 0.015,
+                align = RenderText.ALIGN_LEFT,
+                color = self.UI_CONSTANTS.TEXT_COLOR
+            })
+        end
+    end
+    
+    -- Recent Loads History
+    if #tracker.bucketHistory > 0 then
+        yPos = yPos - 0.030
+        table.insert(self.ui.appTexts, {
+            text = "Recent Loads:",
+            x = content.x + padX,
+            y = yPos,
+            size = 0.016,
+            align = RenderText.ALIGN_LEFT,
+            color = {0.3, 0.6, 0.8, 1}
+        })
+        
+        yPos = yPos - 0.022
+        for i = math.max(1, #tracker.bucketHistory - 4), #tracker.bucketHistory do
+            local load = tracker.bucketHistory[i]
+            if load and yPos > content.y + padY then
+                local loadText = string.format("#%d: %dL %s", 
+                    load.number, load.volume, load.fillType)
+                
+                table.insert(self.ui.appTexts, {
+                    text = loadText,
+                    x = content.x + padX + 0.01,
+                    y = yPos,
+                    size = 0.013,
+                    align = RenderText.ALIGN_LEFT,
+                    color = {0.8, 0.8, 0.8, 1}
+                })
+                
+                table.insert(self.ui.appTexts, {
+                    text = string.format("%d kg", load.weight),
+                    x = content.x + content.width - padX,
+                    y = yPos,
+                    size = 0.013,
+                    align = RenderText.ALIGN_RIGHT,
+                    color = {0.6, 0.8, 1, 1}
+                })
+                
+                yPos = yPos - 0.018
+            end
+        end
+    end
+    
+    -- Reset Button
+    local buttonWidth = 0.18
+    local buttonHeight = 0.035
+    local buttonY = content.y + padY + buttonHeight/2
+    
+    local resetButton = self:createBlankOverlay(
+        content.x + content.width - padX - buttonWidth,
+        buttonY,
+        buttonWidth,
+        buttonHeight,
+        {0.8, 0.3, 0.3, 0.9}
+    )
+    resetButton:setVisible(true)
+    table.insert(self.ui.overlays, resetButton)
+    
+    self.ui.resetBucketButton = {
+        overlay = resetButton,
+        x = content.x + content.width - padX - buttonWidth,
+        y = buttonY,
+        width = buttonWidth,
+        height = buttonHeight
+    }
+    
+    table.insert(self.ui.appTexts, {
+        text = "Reset Session",
+        x = content.x + content.width - padX - buttonWidth/2,
+        y = buttonY + buttonHeight/2 - 0.004,
+        size = 0.012,
+        align = RenderText.ALIGN_CENTER,
+        color = {1, 1, 1, 1}
+    })
+    
+    self:log("Bucket tracker app loaded")
+end
+
+-- =====================
+-- BUCKET TRACKER SYSTEM
+-- =====================
+FarmTablet.bucketTracker = {
+    isEnabled = true,
+    currentVehicle = nil,
+    bucketHistory = {},
+    totalLoads = 0,
+    totalWeight = 0,
+    currentFillLevel = 0,
+    currentFillType = nil,
+    startTime = 0,
+    lastLoadTime = 0
+}
+
+-- Vehicle type detection for bucket/loader vehicles
+FarmTablet.bucketVehicleTypes = {
+    "wheelLoader",
+    "frontLoader",
+    "loader",
+    "excavator",
+    "backhoe",
+    "telehandler",
+    "skidSteer",
+    "materialHandler"
+}
+
+-- Common fill types for construction/gravel
+FarmTablet.bucketFillTypes = {
+    FillType.SAND,
+    FillType.GRAVEL,
+    FillType.CRUSHEDSTONE,
+    FillType.STONE,
+    FillType.DIRT,
+    FillType.CLAY,
+    FillType.LIMESTONE,
+    FillType.COAL,
+    FillType.ORE,
+    FillType.CONCRETE
+}
+
+function FarmTablet:isBucketVehicle(vehicle)
+    if not vehicle then return false end
+    
+    -- Check type name
+    local typeName = vehicle.typeName or ""
+    typeName = typeName:lower()
+    
+    for _, vehicleType in ipairs(self.bucketVehicleTypes) do
+        if typeName:find(vehicleType) then
+            return true
+        end
+    end
+    
+    -- Check for bucket/loader attachments
+    if vehicle.getAttachedImplements then
+        local attached = vehicle:getAttachedImplements()
+        for _, impl in ipairs(attached) do
+            local implType = impl.object.typeName or ""
+            implType = implType:lower()
+            
+            if implType:find("bucket") or 
+               implType:find("loader") or 
+               implType:find("grapple") or
+               implType:find("fork") then
+                return true
+            end
+            
+            -- Check for fillable spec
+            if impl.object.spec_fillUnit then
+                return true
+            end
+        end
+    end
+    
+    -- Check for fillable vehicle
+    if vehicle.spec_fillUnit then
+        return true
+    end
+    
+    return false
+end
+
+function FarmTablet:getCurrentBucketVehicle()
+    if g_currentMission == nil or g_currentMission.controlledVehicle == nil then
+        return nil
+    end
+    
+    local vehicle = g_currentMission.controlledVehicle
+    
+    if self:isBucketVehicle(vehicle) then
+        return vehicle
+    end
+    
+    return nil
+end
+
+function FarmTablet:getBucketFillInfo(vehicle)
+    local fillInfo = {
+        hasFillUnit = false,
+        fillUnits = {},
+        totalCapacity = 0,
+        totalFillLevel = 0,
+        currentFillType = nil,
+        fillTypeName = "Empty",
+        fillPercentage = 0
+    }
+    
+    if vehicle == nil or g_fillTypeManager == nil then  -- Add this check
+            return fillInfo
+    end
+    
+    -- Check vehicle's own fill units
+    if vehicle.spec_fillUnit then
+        local fillUnitSpec = vehicle.spec_fillUnit
+        fillInfo.hasFillUnit = true
+        
+        for _, fillUnit in ipairs(fillUnitSpec.fillUnits) do
+            table.insert(fillInfo.fillUnits, {
+                fillLevel = fillUnit.fillLevel or 0,
+                capacity = fillUnit.capacity or 0,
+                fillType = fillUnit.lastValidFillType or FillType.UNKNOWN,
+                fillTypeIndex = fillUnit.fillType or FillType.UNKNOWN
+            })
+            
+            fillInfo.totalCapacity = fillInfo.totalCapacity + (fillUnit.capacity or 0)
+            fillInfo.totalFillLevel = fillInfo.totalFillLevel + (fillUnit.fillLevel or 0)
+            
+            if (fillUnit.fillLevel or 0) > 0 then
+                fillInfo.currentFillType = fillUnit.fillType or FillType.UNKNOWN
+            end
+        end
+    end
+    
+    -- Check attached implements
+    if vehicle.getAttachedImplements then
+        local attached = vehicle:getAttachedImplements()
+        for _, impl in ipairs(attached) do
+            if impl.object.spec_fillUnit then
+                fillInfo.hasFillUnit = true
+                local fillUnitSpec = impl.object.spec_fillUnit
+                
+                for _, fillUnit in ipairs(fillUnitSpec.fillUnits) do
+                    table.insert(fillInfo.fillUnits, {
+                        fillLevel = fillUnit.fillLevel or 0,
+                        capacity = fillUnit.capacity or 0,
+                        fillType = fillUnit.lastValidFillType or FillType.UNKNOWN,
+                        fillTypeIndex = fillUnit.fillType or FillType.UNKNOWN
+                    })
+                    
+                    fillInfo.totalCapacity = fillInfo.totalCapacity + (fillUnit.capacity or 0)
+                    fillInfo.totalFillLevel = fillInfo.totalFillLevel + (fillUnit.fillLevel or 0)
+                    
+                    if (fillUnit.fillLevel or 0) > 0 then
+                        fillInfo.currentFillType = fillUnit.fillType or FillType.UNKNOWN
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Calculate percentage
+    if fillInfo.totalCapacity > 0 then
+        fillInfo.fillPercentage = (fillInfo.totalFillLevel / fillInfo.totalCapacity) * 100
+    end
+    
+    -- Get fill type name
+    if fillInfo.currentFillType then
+        fillInfo.fillTypeName = g_fillTypeManager:getFillTypeByIndex(fillInfo.currentFillType).title or "Unknown"
+    end
+    
+    return fillInfo
+end
+
+function FarmTablet:estimateBucketWeight(fillInfo)
+    if fillInfo.totalFillLevel <= 0 then
+        return 0
+    end
+    
+    -- Rough weight estimation in liters -> kg conversion
+    -- Common material densities (kg per liter approximation)
+    local densities = {
+        [FillType.SAND] = 1.6,          -- Sand: ~1.6 kg/L
+        [FillType.GRAVEL] = 1.7,        -- Gravel: ~1.7 kg/L
+        [FillType.CRUSHEDSTONE] = 1.6,  -- Crushed stone: ~1.6 kg/L
+        [FillType.STONE] = 2.6,         -- Stone: ~2.6 kg/L
+        [FillType.DIRT] = 1.3,          -- Dirt: ~1.3 kg/L
+        [FillType.CLAY] = 1.8,          -- Clay: ~1.8 kg/L
+        [FillType.LIMESTONE] = 2.6,     -- Limestone: ~2.6 kg/L
+        [FillType.COAL] = 1.3,          -- Coal: ~1.3 kg/L
+        [FillType.ORE] = 2.5,           -- Ore: ~2.5 kg/L
+        [FillType.CONCRETE] = 2.4       -- Concrete: ~2.4 kg/L
+    }
+    
+    local fillType = fillInfo.currentFillType or FillType.UNKNOWN
+    local density = densities[fillType] or 1.5  -- Default density if unknown
+    
+    -- Convert liters to kg (rough estimation)
+    return math.floor(fillInfo.totalFillLevel * density)
+end
+
+function FarmTablet:trackBucketLoad()
+    local vehicle = self:getCurrentBucketVehicle()
+    local tracker = self.bucketTracker
+    
+    if not vehicle then
+        tracker.currentVehicle = nil
+        return
+    end
+    
+    -- Check if we switched vehicles
+    if tracker.currentVehicle ~= vehicle then
+        tracker.currentVehicle = vehicle
+        tracker.startTime = g_currentMission.time
+        self:log("Started tracking bucket for: " .. (vehicle.getName and vehicle:getName() or "Unknown"))
+    end
+    
+    local fillInfo = self:getBucketFillInfo(vehicle)
+    local currentTime = g_currentMission.time or 0
+    
+    -- Detect bucket emptied (load completed)
+    if tracker.currentFillLevel > 50 and fillInfo.totalFillLevel < 10 then
+        -- A load was just dumped/completed
+        local loadWeight = self:estimateBucketWeight({
+            totalFillLevel = tracker.currentFillLevel,
+            currentFillType = tracker.currentFillType
+        })
+        
+        local loadEntry = {
+            number = tracker.totalLoads + 1,
+            timestamp = currentTime,
+            fillType = tracker.fillTypeName or "Unknown",
+            volume = math.floor(tracker.currentFillLevel),
+            weight = loadWeight,
+            vehicle = vehicle.getName and vehicle:getName() or "Unknown"
+        }
+        
+        table.insert(tracker.bucketHistory, loadEntry)
+        tracker.totalLoads = tracker.totalLoads + 1
+        tracker.totalWeight = tracker.totalWeight + loadWeight
+        tracker.lastLoadTime = currentTime
+        
+        -- Show notification
+        if self.settings.showTabletNotifications then
+            self:showNotification(
+                "Bucket Load #" .. loadEntry.number,
+                string.format("%s - %dL (%d kg)", 
+                    loadEntry.fillType, 
+                    loadEntry.volume, 
+                    loadEntry.weight)
+            )
+        end
+        
+        self:log(string.format("Load recorded: #%d - %dL - %d kg", 
+            loadEntry.number, loadEntry.volume, loadEntry.weight))
+    end
+    
+    -- Update current state
+    tracker.currentFillLevel = fillInfo.totalFillLevel
+    tracker.currentFillType = fillInfo.currentFillType
+    tracker.fillTypeName = fillInfo.fillTypeName
+end
+
+function FarmTablet:resetBucketTracker()
+    local tracker = self.bucketTracker
+    tracker.bucketHistory = {}
+    tracker.totalLoads = 0
+    tracker.totalWeight = 0
+    tracker.currentFillLevel = 0
+    tracker.currentFillType = nil
+    tracker.startTime = g_currentMission.time or 0
+    tracker.lastLoadTime = 0
+    
+    self:showNotification("Bucket Tracker", "Tracking reset")
+    self:log("Bucket tracker reset")
+end
+
+function FarmTablet:formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    
+    if hours > 0 then
+        return string.format("%02d:%02d:%02d", hours, minutes, secs)
+    else
+        return string.format("%02d:%02d", minutes, secs)
+    end
 end
 
 function FarmTablet:destroyTabletUI()
@@ -2300,7 +3049,36 @@ function FarmTablet:loadIncomeApp()
 end
 
 function FarmTablet:mouseEvent(posX, posY, isDown, isUp, button) 
+    if not self.isTabletOpen or not isDown then
+        return false
+    end
     
+    if self.ui.closeButton then
+        local btn = self.ui.closeButton
+        if posX >= btn.x and posX <= btn.x + btn.width and
+           posY >= btn.y and posY <= btn.y + btn.height then
+            self:closeTablet()
+            return true
+        end
+    end
+    
+    for _, buttonInfo in ipairs(self.ui.appButtons) do
+        if posX >= buttonInfo.x and posX <= buttonInfo.x + buttonInfo.width and
+           posY >= buttonInfo.y and posY <= buttonInfo.y + buttonInfo.height then
+            self:switchApp(buttonInfo.appId)
+            return true
+        end
+    end
+    
+    if self.currentApp == "workshop" and self.ui.workshopButton then
+        local b = self.ui.workshopButton
+        if posX >= b.x and posX <= b.x + b.width and
+        posY >= b.y and posY <= b.y + b.height then
+            self:openWorkshopForNearestVehicle(6)
+            return true
+        end
+    end
+
     if self.currentApp == "income_mod" then
         if self.ui.enableIncomeButton then
             local b = self.ui.enableIncomeButton
@@ -2357,6 +3135,17 @@ function FarmTablet:mouseEvent(posX, posY, isDown, isUp, button)
         end
     end
     
+    -- Handle bucket tracker reset button (MOVED OUTSIDE tax_mod block!)
+    if self.currentApp == "bucket_tracker" and self.ui.resetBucketButton then
+        local b = self.ui.resetBucketButton
+        if posX >= b.x and posX <= b.x + b.width and
+           posY >= b.y and posY <= b.y + b.height then
+            self:resetBucketTracker()
+            self:switchApp("bucket_tracker") -- Refresh the display
+            return true
+        end
+    end
+
     return false
 end
 
@@ -2407,6 +3196,10 @@ function FarmTablet:update(dt)
     
     if self.currentApp == "digging" then 
         self:updateDiggingLive(dt) 
+    end
+
+    if self.bucketTracker.isEnabled then
+        self:trackBucketLoad()
     end
 
     self:autoRegisterModApps()
@@ -3170,6 +3963,41 @@ function FarmTablet:onConsoleCommand(...)
             print("  • " .. app.id .. " - " .. g_i18n:getText(app.name) .. " [" .. status .. "]")
         end
         
+    elseif action == "bucket" then
+        local subcmd = args[2] or "status"
+        
+        if subcmd == "status" then
+            print("=== Bucket Tracker Status ===")
+            print("Enabled: " .. tostring(self.bucketTracker.isEnabled))
+            print("Total Loads: " .. self.bucketTracker.totalLoads)
+            print("Total Weight: " .. self.bucketTracker.totalWeight .. " kg")
+            print("Current Fill: " .. self.bucketTracker.currentFillLevel .. " L")
+            
+            if #self.bucketTracker.bucketHistory > 0 then
+                print("\nRecent Loads:")
+                for i = math.max(1, #self.bucketTracker.bucketHistory - 4), #self.bucketTracker.bucketHistory do
+                    local load = self.bucketTracker.bucketHistory[i]
+                    print(string.format("  #%d: %dL %s (%d kg)", 
+                        load.number, load.volume, load.fillType, load.weight))
+                end
+            end
+            
+        elseif subcmd == "reset" then
+            self:resetBucketTracker()
+            print("Bucket tracker reset")
+            
+        elseif subcmd == "enable" then
+            self.bucketTracker.isEnabled = true
+            print("Bucket tracker enabled")
+            
+        elseif subcmd == "disable" then
+            self.bucketTracker.isEnabled = false
+            print("Bucket tracker disabled")
+            
+        else
+            print("Usage: tablet bucket [status|reset|enable|disable]")
+        end
+
     elseif action == "enable" and args[2] then
         local appId = args[2]:lower()
         local app = self:getApp(appId)
@@ -3236,18 +4064,6 @@ end
 -- =====================
 -- INPUT HANDLING
 -- =====================
-function FarmTablet:keyEvent(unicode, sym, modifier, isDown)
-    if isDown and sym == Input.KEY_i and self.settings.tabletKeybind == "I" then
-        self:toggleTablet()
-        return true
-    end
-    
-    if isDown and sym == Input.KEY_escape and self.isTabletOpen then
-        self:closeTablet()
-        return true
-    end
-end
-
 function FarmTablet:mouseEvent(posX, posY, isDown, isUp, button) 
     if not self.isTabletOpen or not isDown then
         return
@@ -3344,7 +4160,7 @@ function FarmTablet:mouseEvent(posX, posY, isDown, isUp, button)
                 if TaxMod then
                     TaxMod.settings.enabled = true
                     TaxMod:saveSettingsToXML()
-                    self:switchApp("tax_mod") -- Refresh the app
+                    self:switchApp("tax_mod")
                 end
                 return true
             end
@@ -3357,7 +4173,7 @@ function FarmTablet:mouseEvent(posX, posY, isDown, isUp, button)
                 if TaxMod then
                     TaxMod.settings.enabled = false
                     TaxMod:saveSettingsToXML()
-                    self:switchApp("tax_mod") -- Refresh the app
+                    self:switchApp("tax_mod")
                 end
                 return true
             end
