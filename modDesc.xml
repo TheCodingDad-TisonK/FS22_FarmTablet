@@ -11,7 +11,7 @@
 The FS22 Farm Tablet is a central interface that helps you monitor and manage your farm more easily.
 
 Current features:
-• Open and close the tablet with a dedicated keybind (default: 'I')
+• Open and close the tablet with a dedicated keybind (default: 'T')
 • Modular app system with built-in apps:
   - Financial Dashboard: view your total income, expenses, net profit, active fields, and vehicle count
   - App Store: see all installed apps and their status
@@ -28,7 +28,7 @@ The tablet is fully customizable via console commands and actively being develop
 De FS22 Farm Tablet is een centrale interface die je helpt je boerderij gemakkelijker te beheren en te monitoren.
 
 Huidige functies:
-• Open en sluit de tablet met een speciale toets (standaard: 'I')
+• Open en sluit de tablet met een speciale toets (standaard: 'T')
 • Modulair appsysteem met ingebouwde apps:
   - Financieel Dashboard: bekijk je totale inkomsten, uitgaven, nettowinst, actieve velden en voertuigen
   - App Store: zie alle geïnstalleerde apps en hun status
@@ -94,7 +94,7 @@ La tablet es totalmente personalizable mediante comandos de consola y se encuent
 </description>    
     <author>TisonK</author>
     
-    <version>1.0.5.8</version>
+    <version>1.0.5.9</version>
     <multiplayer supported="true"/>
     
     <iconFilename>icon_FS22_FarmTablet.dds</iconFilename>
@@ -137,6 +137,13 @@ La tablet es totalmente personalizable mediante comandos de consola y se encuent
             <de>Werkstatt</de>
             <fr>Atelier</fr>
             <es>Taller</es>
+        </text>
+
+        <text name="tablet_app_bucket_tracker">
+            <en>Bucket Tracker</en>
+            <de>Kübel-Ladungszähler</de>
+            <fr>Compteur de Godets</fr>
+            <es>Contador de Cucharones</es>
         </text>
         
         <text name="tablet_app_income_mod">
@@ -468,6 +475,13 @@ La tablet es totalmente personalizable mediante comandos de consola y se encuent
 
         <text name="Digging">
             <en>Digging</en>
+            <de>Graben</de>
+            <fr>Creuser</fr>
+            <es>Cavando</es>
+        </text>
+
+        <text name="bucket_tracker">
+            <en>Bucket Tracker</en>
             <de>Graben</de>
             <fr>Creuser</fr>
             <es>Cavando</es>
