@@ -21,24 +21,6 @@ This mod introduces a tablet UI element into FS22 that you can toggle in-game to
 
 ---
 
-## 📝 Changelog
-
-### V1.0.5.8
-
-- Reworked Digging app to use real Farming Simulator 22 terrain and vehicle data
-- Removed hardcoded values
-- Added detection for active terrain deformation
-- Added live cut / fill depth display based on actual terrain height changes
-- Improved digging vehicle detection
-- Added clear indicators for active vs idle digging vehicles
-- Added compatibility with terrain deformation mods (TerraFarm, Earthworks)
-- General stability and performance improvements after last version*
-
-*Previous version (v1.0.5.7) was pushed to soon, therefor i forgot some lines to rewrite
-before double checking to publish. This is fixed now!
-
----
-
 ## ⚖️ License
 
 All rights reserved. Unauthorized redistribution, copying, or claiming this mod as your own is **strictly prohibited**.  
