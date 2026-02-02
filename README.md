@@ -1,4 +1,7 @@
 # Farm Tablet — FS22 Mod
+![Downloads](https://img.shields.io/github/downloads/TheCodingDad-TisonK/FS22_FarmTablet/total?style=for-the-badge)
+![Release](https://img.shields.io/github/v/release/TheCodingDad-TisonK/FS22_FarmTablet?style=for-the-badge)
+![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red?style=for-the-badge)
 
 **Farm Tablet** is a script mod for *Farming Simulator 22* that adds a **compact in-game tablet interface** showing useful information and tools for your farm. It’s a work-in-progress project that aims to grow into an all-in-one farm management tablet with apps and real data displays.  
 Original mod page: https://www.kingmods.net/en/fs22/mods/73757/farm-tablet
